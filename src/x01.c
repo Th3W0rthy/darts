@@ -4,9 +4,9 @@
 #include "../include/x01.h"
 #include "../include/lista.h"
 
-X01_jatekosok *eleje = NULL;
+X01_jatekosok *X01_eleje = NULL;
 
-void set_beallitas(int *set)
+void X01_set_beallitas(int *set)
 {
     char menupont;
     do
@@ -31,7 +31,7 @@ void set_beallitas(int *set)
             break;
         }
 
-        X01_jatekosok *mozgo = eleje;
+        X01_jatekosok *mozgo = X01_eleje;
         while (mozgo != NULL)
         {
             mozgo->set = *set;
@@ -40,10 +40,10 @@ void set_beallitas(int *set)
     } while (menupont != 8);
 }
 
-void leg_beallitas(int *leg)
+void X01_leg_beallitas(int *leg)
 {
     char menupont;
-do
+    do
     {
         printf("\nLegek száma: \n1. 1\n2. 3\n3. 5\n4. Vissza\nMenüpont: ");
         scanf(" %c", &menupont);
@@ -60,7 +60,7 @@ do
             printf("\nHibás menüpont!\n");
             break;
         }
-        X01_jatekosok *mozgo = eleje;
+        X01_jatekosok *mozgo = X01_eleje;
         while (mozgo != NULL)
         {
             mozgo->leg = *leg;
@@ -93,7 +93,7 @@ void x01_beallitas(int *x01)
             break;
         }
 
-        X01_jatekosok *mozgo = eleje;
+        X01_jatekosok *mozgo = X01_eleje;
         while (mozgo != NULL)
         {
             mozgo->x01 = *x01;
@@ -108,7 +108,7 @@ void x01_jatekos_hozzaadas(int x01, int set, int leg)
     printf("Játékos neve: ");
     scanf("%30s", nev);
 
-    X01_jatekosok *mozgo = eleje;
+    X01_jatekosok *mozgo = X01_eleje;
     while (mozgo != NULL)
     {
         if (strcmp(mozgo->nev, nev) == 0)
@@ -145,13 +145,13 @@ void x01_jatekos_hozzaadas(int x01, int set, int leg)
     uj->elozo = NULL;
     uj->kov = NULL;
 
-    if (eleje == NULL)
+    if (X01_eleje == NULL)
     {
-        eleje = uj;
+        X01_eleje = uj;
     }
     else
     {
-        X01_jatekosok *mozgo = eleje;
+        X01_jatekosok *mozgo = X01_eleje;
         while (mozgo->kov != NULL)
             {
                 mozgo = mozgo->kov;
@@ -165,7 +165,7 @@ void x01_jatekos_hozzaadas(int x01, int set, int leg)
 
 void x01_jatekos_torlese()
 {
-    if (!eleje)
+    if (X01_eleje == NULL)
     {
         printf("Nincs törlendő játékos!\n");
         return;
@@ -176,7 +176,7 @@ void x01_jatekos_torlese()
     scanf("%d", &sorszam);
 
     X01_jatekosok *lemarado = NULL;
-    X01_jatekosok *mozgo = eleje;
+    X01_jatekosok *mozgo = X01_eleje;
 
     int i = 1;
     while (mozgo != NULL && i < sorszam)
@@ -194,10 +194,10 @@ void x01_jatekos_torlese()
 
     if (lemarado == NULL)
     {
-        eleje = mozgo->kov;
-        if (eleje)
+        X01_eleje = mozgo->kov;
+        if (X01_eleje)
         {
-            eleje->elozo = NULL;
+            X01_eleje->elozo = NULL;
         }
     } 
     else
@@ -215,7 +215,7 @@ void x01_jatekos_torlese()
 
 void x01_jatek()
 {
-    
+
 }
 
 void x01_menu()
@@ -227,11 +227,11 @@ void x01_menu()
 
     do
     {
-        printf("\nA pontszám: %d\n", x01);
-        printf("\nSzettek száma: %d\n", set);
-        printf("\nLegek száma: %d\n", leg);
+        printf("\n--X01--\n");
+        printf("\nA pontszám: %d\n"
+        "Szettek száma: %d\nLegek száma: %d\n",x01, set, leg);
 
-        if (eleje == NULL)
+        if (X01_eleje == NULL)
         {
             printf("\nNincs játékos!\n");
         }
@@ -239,7 +239,7 @@ void x01_menu()
         {
             printf("\nJátékosok:\n");
         }
-        X01_jatekosok *mozgo = eleje;
+        X01_jatekosok *mozgo = X01_eleje;
         int sorszam = 1;
         while (mozgo != NULL)
         {
@@ -257,10 +257,10 @@ void x01_menu()
             x01_beallitas(&x01);
             break;
         case '2':
-            set_beallitas(&set);
+            X01_set_beallitas(&set);
             break;
         case '3':
-            leg_beallitas(&leg);
+            X01_leg_beallitas(&leg);
             break;
         case '4':
             x01_jatekos_hozzaadas(x01, set, leg);
@@ -279,5 +279,5 @@ void x01_menu()
             printf("\nHibás menüpont!\n");
             break;
         }
-    } while (menupont != '5');
+    } while (menupont != '7');
 }
