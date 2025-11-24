@@ -16,8 +16,7 @@ typedef struct Krikett_stats
 {
     int nyilak_db;
     double atlag;
-    int max_dobas_db;
-    int max_kiszallo;
+    int gyozelmek;
 } Krikett_stats;
 
 typedef struct X01_jatekosok
@@ -43,6 +42,9 @@ typedef struct Krikett_jatekosok
     int dobas_1;
     int dobas_2;
     int dobas_3;
+
+    int set;
+    int leg;
 
     int db_15;
     int db_16;
