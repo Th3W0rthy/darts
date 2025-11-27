@@ -16,15 +16,14 @@ typedef struct Krikett_stats
 {
     int nyilak_db;
     double atlag;
-    int gyozelmek;
 } Krikett_stats;
 
 typedef struct X01_jatekosok
 {
     char nev[31];
-    int dobas_1;
-    int dobas_2;
-    int dobas_3;
+    char dobas_1[4];
+    char dobas_2[4];
+    char dobas_3[4];
 
     int x01;
     int set;
@@ -39,12 +38,14 @@ typedef struct X01_jatekosok
 typedef struct Krikett_jatekosok
 {
     char nev[31];
-    int dobas_1;
-    int dobas_2;
-    int dobas_3;
+    char dobas_1[6];
+    char dobas_2[6];
+    char dobas_3[6];
 
     int set;
     int leg;
+    int nyert_set;
+    int nyert_leg;
 
     int db_15;
     int db_16;
