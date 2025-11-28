@@ -74,7 +74,7 @@ void krikett_leg_beallitas(int *leg)
 
 void krikett_jatekos_hozzaadas(int set, int leg)
 {
-    char nev[30];
+    char nev[31];
     printf("Játékos neve: ");
     scanf("%30s", nev);
 
