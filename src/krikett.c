@@ -185,35 +185,7 @@ void krikett_jatekos_torles()
     printf("Játékos törölve.\n");
 }
 
-bool ellenoriz_dobasok(Krikett_jatekosok *j, const char *d1, const char *d2, const char *d3)
-{
-    int ment15 = j->db_15;
-    int ment16 = j->db_16;
-    int ment17 = j->db_17;
-    int ment18 = j->db_18;
-    int ment19 = j->db_19;
-    int ment20 = j->db_20;
-    int ment25 = j->db_25;
-
-    bool ok1 = szamol_dobas(j, d1);
-    bool ok2 = szamol_dobas(j, d2);
-    bool ok3 = szamol_dobas(j, d3);
-
-    if (ok1 && ok2 && ok3)
-        return true;
-
-    j->db_15 = ment15;
-    j->db_16 = ment16;
-    j->db_17 = ment17;
-    j->db_18 = ment18;
-    j->db_19 = ment19;
-    j->db_20 = ment20;
-    j->db_25 = ment25;
-
-    return false;
-}
-
-bool szamol_dobas(Krikett_jatekosok *j, const char *dobas)
+bool krikett_szamol_dobas(Krikett_jatekosok *j, const char *dobas)
 {
     int szorzo = 1;
     int szam;
@@ -262,6 +234,34 @@ bool szamol_dobas(Krikett_jatekosok *j, const char *dobas)
             return false;
     }
     return true;
+}
+
+bool ellenoriz_dobasok(Krikett_jatekosok *j, const char *d1, const char *d2, const char *d3)
+{
+    int ment15 = j->db_15;
+    int ment16 = j->db_16;
+    int ment17 = j->db_17;
+    int ment18 = j->db_18;
+    int ment19 = j->db_19;
+    int ment20 = j->db_20;
+    int ment25 = j->db_25;
+
+    bool ok1 = krikett_szamol_dobas(j, d1);
+    bool ok2 = krikett_szamol_dobas(j, d2);
+    bool ok3 = krikett_szamol_dobas(j, d3);
+
+    if (ok1 && ok2 && ok3)
+        return true;
+
+    j->db_15 = ment15;
+    j->db_16 = ment16;
+    j->db_17 = ment17;
+    j->db_18 = ment18;
+    j->db_19 = ment19;
+    j->db_20 = ment20;
+    j->db_25 = ment25;
+
+    return false;
 }
 
 void szamol_pont(Krikett_jatekosok *j)
