@@ -6,7 +6,7 @@
 
 X01_jatekosok *X01_eleje = NULL;
 
-void X01_set_beallitas(int *set)
+void x01_set_beallitas(int *set)
 {
     char menupont;
     do
@@ -40,7 +40,7 @@ void X01_set_beallitas(int *set)
     } while (menupont != 8);
 }
 
-void X01_leg_beallitas(int *leg)
+void x01_leg_beallitas(int *leg)
 {
     char menupont;
     do
@@ -104,7 +104,7 @@ void x01_beallitas(int *x01)
 
 void x01_jatekos_hozzaadas(int x01, int set, int leg)
 {
-    char nev[30];
+    char nev[31];
     printf("Játékos neve: ");
     scanf("%30s", nev);
 
@@ -127,9 +127,9 @@ void x01_jatekos_hozzaadas(int x01, int set, int leg)
     }
 
     strcpy(uj->nev, nev);
-    uj->dobas_1 = 0;
-    uj->dobas_2 = 0;
-    uj->dobas_3 = 0;
+    strcpy(uj->dobas_1, "");
+    strcpy(uj->dobas_2, "");
+    strcpy(uj->dobas_3, "");
     uj->x01 = x01;
     uj->set_gyoz = 0;
     uj->leg_gyoz = 0;
@@ -257,10 +257,10 @@ void x01_menu()
             x01_beallitas(&x01);
             break;
         case '2':
-            X01_set_beallitas(&set);
+            x01_set_beallitas(&set);
             break;
         case '3':
-            X01_leg_beallitas(&leg);
+            x01_leg_beallitas(&leg);
             break;
         case '4':
             x01_jatekos_hozzaadas(x01, set, leg);
