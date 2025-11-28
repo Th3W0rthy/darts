@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "menu.h"
-#include "x01.h"
-#include "krikett.h"
+#include "../include/menu.h"
+#include "../include/x01.h"
+#include "../include/krikett.h"
 
 void jatekok_menu()
 {
@@ -28,6 +28,19 @@ void jatekok_menu()
     } while (menupont != '3');
 }
 
+void utmutato_menu()
+{
+    printf("\n--Útmutató--\n\n"
+    "- Menü használata:\n"
+    "A menüben a menüpont sorszámát kell írni és\nutána entert kell nyomni és átnavigál a választott menüpontra.\n"
+    "- Dobások beírása:\n"
+    "A dobásokat többféle képpen is be lehet írni.\nAlapvetően, ha szimplát dob a játékos csak a számot kell beírni.\n"
+    "Amikor duplát vagy triplát dob, akkor a szám elé be kell írni a 'd' vagy 't' betűt.\n"
+    "Ha a játékos érvénytelent dobott, akkor be tud írni 1 vagy 2 dobást is.\n"
+    "A dobásokat vesszővel, szóközzel vagy mindkettővel kell elválasztani.\n"
+    );
+}
+
 void menu()
 {
     char menupont;
@@ -42,7 +55,7 @@ void menu()
             jatekok_menu();
             break;
         case '2':
-            printf("Útmutató\n");
+            utmutato_menu();
             break;
         case '3':
             printf("Mentett játékok\n");
