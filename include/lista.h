@@ -28,8 +28,8 @@ typedef struct X01_jatekosok
     int x01;
     int set;
     int leg;
-    int set_gyoz;
-    int leg_gyoz;
+    int nyert_set;
+    int nyert_leg;
     X01_stats stat;
 
     struct X01_jatekosok *elozo, *kov;
