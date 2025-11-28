@@ -38,6 +38,8 @@ void utmutato_menu()
     "Amikor duplát vagy triplát dob, akkor a szám elé be kell írni a 'd' vagy 't' betűt.\n"
     "Ha a játékos érvénytelent dobott, akkor be tud írni 1 vagy 2 dobást is.\n"
     "A dobásokat vesszővel, szóközzel vagy mindkettővel kell elválasztani.\n"
+    "- Kilépni úgy tudsz, hogy a dobás helyett -1-et írsz be.\n"
+    "- Ha kilépsz egy játékból a dobások elvesznek és újrakezdődik a játék!\n"
     );
 }
 
