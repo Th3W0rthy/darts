@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+#include <ctype.h>
 #include "../include/x01.h"
 #include "../include/lista.h"
 
@@ -131,10 +133,10 @@ void x01_jatekos_hozzaadas(int x01, int set, int leg)
     strcpy(uj->dobas_2, "");
     strcpy(uj->dobas_3, "");
     uj->x01 = x01;
-    uj->set_gyoz = 0;
-    uj->leg_gyoz = 0;
     uj->set = set;
     uj->leg = leg;
+    uj->nyert_set = 0;
+    uj->nyert_leg = 0;
     uj->stat.nyilak_db = 0;
     uj->stat.atlag = 0;
     uj->stat.max_dobas_db = 0;
@@ -213,9 +215,182 @@ void x01_jatekos_torlese()
     printf("Játékos törölve.\n");
 }
 
-void x01_jatek()
+bool x01_szamol_dobas(X01_jatekosok *j, const char *dobas, bool *kilep, bool *sok)
 {
+    int szorzo = 1;
+    int szam;
+    char betu;
+    if (isalpha(dobas[0]))
+    {
+        betu = tolower(dobas[0]);
+        if (betu != 'd' && betu != 't') {
+            printf("Hibás szorzó!\n");
+            return false;
+        }
+        szorzo = (betu == 'd') ? 2 : (betu == 't') ? 3 : 1;
+        szam = atoi(&dobas[1]);
+    }
+    else
+    {
+        szam = atoi(dobas);
+    }
 
+    if (szam == -1)
+    {
+        *kilep = true;
+    }
+
+    if ((szam >= 0 && szam <= 20) || szam == 25 )
+    {
+        if (szam == 25 && betu == 't')
+        {
+            return false;
+        }
+        
+        int temp = j->x01;
+        temp -= szorzo * szam;
+        if (temp < 0 || temp == 1)
+        {
+           *sok = true;
+           return true;
+        }
+        j->x01 = temp;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+void x01_jatek(int x01, int set, int leg)
+{
+    X01_jatekosok *mozgo;
+    X01_jatekosok *mozgo2;
+    X01_jatekosok *mozgo3;
+    bool nyert = false;
+    bool kilep = false;
+    char dobasok[16];
+    int korszam = 1;
+    char *temp;
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF) { }
+
+    for (mozgo = X01_eleje; mozgo != NULL; mozgo = mozgo->kov)
+    {
+        mozgo->nyert_leg = 0;
+        mozgo->nyert_set = 0;
+        mozgo->x01 = x01;
+        mozgo->set = set;
+        mozgo->leg = leg;
+    }
+
+    while (!nyert)
+    {
+        printf("\n---%d. kör---\n", korszam);
+        bool hibatlan = true;
+        bool ujrakezd = false;
+        bool sok = false;
+        for (mozgo = X01_eleje; mozgo != NULL; mozgo = mozgo->kov)
+        {
+            mozgo->dobas_1[0] = '\0';
+            mozgo->dobas_2[0] = '\0';
+            mozgo->dobas_3[0] = '\0';
+
+            printf("\n%s\nPontszám: %d\nNyert leg: %d\nNyert set: %d",
+            mozgo->nev, mozgo->x01, mozgo->nyert_leg, mozgo->nyert_set);
+            printf("\nDobások: ");
+
+            if (fgets(dobasok, sizeof(dobasok), stdin) == NULL)
+            {
+                printf("Hiba beolvasáskor!\n");
+                hibatlan = false;
+                break;
+            }
+
+            dobasok[strcspn(dobasok, "\n")] = '\0';
+
+            temp = strtok(dobasok, ", ");
+            if (temp) {
+                while (*temp == ' ') temp++;  
+                strcpy(mozgo->dobas_1, temp);
+            }
+
+            temp = strtok(NULL, ", ");
+            if (temp) {
+                while (*temp == ' ') temp++;
+                strcpy(mozgo->dobas_2, temp);
+            }
+
+            temp = strtok(NULL, ", ");
+            if (temp) {
+                while (*temp == ' ') temp++;
+                strcpy(mozgo->dobas_3, temp);
+            }
+
+            int temp_x01 = mozgo->x01;
+
+            if (!x01_szamol_dobas(mozgo, mozgo->dobas_1, &kilep, &sok) || 
+            !x01_szamol_dobas(mozgo, mozgo->dobas_2, & kilep, &sok) || 
+            !x01_szamol_dobas(mozgo, mozgo->dobas_3, &kilep, &sok))
+            {
+                if (kilep)
+                {
+                    printf("\nKilépés a menübe!\n");
+                    nyert = kilep;
+                }
+                else
+                {
+                    printf("\nHibás dobás! Dobj újra!");
+                    hibatlan = false;
+                    break;
+                }
+            }
+            
+            if (sok)
+            {
+                printf("\nBesokalt!\n");
+                mozgo->x01 = temp_x01;
+                continue;
+            }
+            
+
+            if (mozgo->x01 == 0)
+            {
+                printf("\n%s játékos nyert egy kört!\n", mozgo->nev);
+                mozgo->nyert_leg++;
+                for (mozgo3 = X01_eleje; mozgo3 != NULL; mozgo3 = mozgo3->kov)
+                {
+                    mozgo3->x01 = x01;
+                }
+                if (mozgo->nyert_leg == mozgo->leg)
+                {
+                    for (mozgo2 = X01_eleje; mozgo2 != NULL; mozgo2 = mozgo2->kov)
+                    {
+                        mozgo2->nyert_leg = 0;
+                    }
+                    mozgo->nyert_set++;
+                    if (mozgo->nyert_set == mozgo->set)
+                    {
+                        nyert = true;
+                        printf("\n%s játékos győzött!\n", mozgo->nev);
+                    }
+                }
+                ujrakezd = true;
+                break;
+            }
+        }
+        if (hibatlan)
+        {
+            korszam++;
+        }
+        
+        if (ujrakezd)
+        {
+            korszam = 1;
+            continue;
+        }
+    }
 }
 
 void x01_menu()
@@ -269,7 +444,14 @@ void x01_menu()
             x01_jatekos_torlese();
             break;
         case '6':
-
+            if (!X01_eleje)
+            {
+                printf("\nJátékos nélnül nem lehet játszani!\n");
+            }
+            else
+            {
+                x01_jatek(x01, set, leg);
+            }
             break;
         case '7':
             printf("\nVisszalépés a játékok menübe!\n");
