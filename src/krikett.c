@@ -427,12 +427,14 @@ void krikett_menu()
             printf("\nJátékosok:\n");
         }
         Krikett_jatekosok *mozgo = Kr_eleje;
+        int jatekos_szam = 0;
         int sorszam = 1;
         while (mozgo != NULL)
         {
             printf("%d. %s\n", sorszam, mozgo->nev);
             mozgo = mozgo->kov;
             sorszam++;
+            jatekos_szam++;
         }
 
         printf("\n1. Szet szám módosítása\n2. Leg szám módosítása\n3. Játékos hozzáadása\n4. Játékos törlése"
@@ -457,6 +459,10 @@ void krikett_menu()
             if (!Kr_eleje)
             {
                 printf("\nJátékos nélnül nem lehet játszani!\n");
+            }
+            else if (jatekos_szam < 2)
+            {
+                printf("\n2 játékos szükséges a játékhoz!\n");
             }
             else
             {
