@@ -1,6 +1,7 @@
 #ifndef KRIKETT_H
 #define KRIKETT_H
 
+#include "stdbool.h"
 #include "../include/lista.h"
 
 void krikett_menu();
