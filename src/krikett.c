@@ -6,7 +6,6 @@
 #include "../include/krikett.h"
 #include "../include/lista.h"
 
-
 Krikett_jatekosok *Kr_eleje = NULL;
 
 void krikett_set_beallitas(int *set)
@@ -185,7 +184,7 @@ void krikett_jatekos_torles()
     printf("Játékos törölve.\n");
 }
 
-bool krikett_szamol_dobas(Krikett_jatekosok *j, const char *dobas)
+bool krikett_szamol_dobas(Krikett_jatekosok *j, const char *dobas, bool *kilep)
 {
     int szorzo = 1;
     int szam;
@@ -207,6 +206,7 @@ bool krikett_szamol_dobas(Krikett_jatekosok *j, const char *dobas)
 
     switch (szam)
     {
+        case -1: *kilep = true; break;
         case 0: break;
         case 1: break;
         case 2: break;
@@ -236,7 +236,7 @@ bool krikett_szamol_dobas(Krikett_jatekosok *j, const char *dobas)
     return true;
 }
 
-bool ellenoriz_dobasok(Krikett_jatekosok *j, const char *d1, const char *d2, const char *d3)
+bool ellenoriz_dobasok(Krikett_jatekosok *j, const char *d1, const char *d2, const char *d3, bool *kilep)
 {
     int ment15 = j->db_15;
     int ment16 = j->db_16;
@@ -246,9 +246,9 @@ bool ellenoriz_dobasok(Krikett_jatekosok *j, const char *d1, const char *d2, con
     int ment20 = j->db_20;
     int ment25 = j->db_25;
 
-    bool ok1 = krikett_szamol_dobas(j, d1);
-    bool ok2 = krikett_szamol_dobas(j, d2);
-    bool ok3 = krikett_szamol_dobas(j, d3);
+    bool ok1 = krikett_szamol_dobas(j, d1, kilep);
+    bool ok2 = krikett_szamol_dobas(j, d2, kilep);
+    bool ok3 = krikett_szamol_dobas(j, d3, kilep);
 
     if (ok1 && ok2 && ok3)
         return true;
@@ -284,6 +284,7 @@ void krikett_jatek()
     Krikett_jatekosok *mozgo3;
     Krikett_jatekosok *mozgo4;
     bool nyert = false;
+    bool kilep = false;
     char dobasok[16]; 
     int korszam = 1;
     char *temp;
@@ -294,6 +295,14 @@ void krikett_jatek()
     {
         mozgo->nyert_leg = 0;
         mozgo->nyert_set = 0;
+        mozgo->db_15 = 0;
+        mozgo->db_16 = 0;
+        mozgo->db_17 = 0;
+        mozgo->db_18 = 0;
+        mozgo->db_19 = 0;
+        mozgo->db_20 = 0;
+        mozgo->db_25 = 0;
+        mozgo->pontok = 0;
     }
 
     while (!nyert)
@@ -340,13 +349,21 @@ void krikett_jatek()
                 strcpy(mozgo->dobas_3, temp);
             }
 
-            if (!ellenoriz_dobasok(mozgo, mozgo->dobas_1, mozgo->dobas_2, mozgo->dobas_3))
+            if (!ellenoriz_dobasok(mozgo, mozgo->dobas_1, mozgo->dobas_2, mozgo->dobas_3, &kilep))
             {
                 printf("\nHibás dobás! Dobj újra!");
                 hibatlan = false;
                 break;
             }
                 
+            if (kilep)
+            {
+                printf("Kilépés a menübe!");
+                nyert = kilep;
+                break;
+            }
+            
+
             szamol_pont(mozgo);
 
             if (mozgo->db_15 > 2 && mozgo->db_16 > 2 && mozgo->db_17 > 2 && mozgo->db_18 > 2 && 
