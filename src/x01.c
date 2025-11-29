@@ -263,6 +263,53 @@ bool x01_szamol_dobas(X01_jatekosok *j, const char *dobas, bool *kilep, bool *so
     }
 }
 
+void kiir_kiszallo(const int x01)
+{
+    FILE *fajl = fopen("data/kiszallok.txt", "r");
+    if (!fajl)
+    {
+        perror("Nem sikerült a fájl megnyitása");
+        return;
+    }
+
+    int pont;
+    char dobasok[20];
+    char *temp;
+
+    while (fscanf(fajl, "%9d;%19s", &pont, dobasok) == 2)
+    {
+        if (x01 == pont)
+        {
+            printf("\nKiszálló: ");
+
+            temp = strtok(dobasok, ";");
+            if (temp)
+            {
+                while (*temp == ' ') temp++;
+                printf("%s ", temp);
+            }
+
+            temp = strtok(NULL, ";");
+            if (temp)
+            {
+                while (*temp == ' ') temp++;
+                printf("%s ", temp);
+            }
+
+            temp = strtok(NULL, ";");
+            if (temp)
+            {
+                while (*temp == ' ') temp++;
+                printf("%s ", temp);
+            }
+
+            printf("\n");
+        }
+    }
+    
+    fclose(fajl);
+}
+
 void x01_jatek(int x01, int set, int leg)
 {
     X01_jatekosok *mozgo;
@@ -296,9 +343,13 @@ void x01_jatek(int x01, int set, int leg)
             mozgo->dobas_1[0] = '\0';
             mozgo->dobas_2[0] = '\0';
             mozgo->dobas_3[0] = '\0';
-
-            printf("\n%s\nPontszám: %d\nNyert leg: %d\nNyert set: %d",
+            
+            printf("\n%s\nPontszám: %d\nNyert leg: %d\nNyert set: %d\n",
             mozgo->nev, mozgo->x01, mozgo->nyert_leg, mozgo->nyert_set);
+            if (mozgo->x01 <= 170)
+            {
+                kiir_kiszallo(mozgo->x01);
+            }
             printf("\nDobások: ");
 
             if (fgets(dobasok, sizeof(dobasok), stdin) == NULL)
@@ -353,7 +404,6 @@ void x01_jatek(int x01, int set, int leg)
                 mozgo->x01 = temp_x01;
                 continue;
             }
-            
 
             if (mozgo->x01 == 0)
             {
