@@ -319,7 +319,7 @@ void krikett_jatek()
             printf("\n%s\n15: %d\n16: %d\n17: %d\n18: %d\n19: %d\n20: %d\n25: %d\nPotnok: %d",
             mozgo->nev, mozgo->db_15, mozgo->db_16, mozgo->db_17, mozgo->db_18,
             mozgo->db_19, mozgo->db_20, mozgo->db_25, mozgo->pontok);
-            printf("\nNyert leg: %d\nNyert set: %d", mozgo->nyert_leg, mozgo->nyert_set);
+            printf("\nNyert leg: %d\nNyert set: %d\n", mozgo->nyert_leg, mozgo->nyert_set);
             printf("\nDobások: ");
             
             if (fgets(dobasok, sizeof(dobasok), stdin) == NULL)
