@@ -3,13 +3,15 @@
 
 typedef struct X01_stats
 {
-    int nyilak_db;
+    double nyilak_db;
     double atlag;
+    double ossz_dobas;
     int max_dobas_db;
     int kiszallo_dobas_db;
     int jo_kiszallo;
     int max_kiszallo;
-    int gyozelmek;
+    int nyert_set;
+    int nyert_leg;
 } X01_stats;
 
 typedef struct Krikett_stats
