@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <time.h>
+#include <debugmalloc.h>
 #include "../include/krikett.h"
 #include "../include/lista.h"
 
@@ -113,6 +115,9 @@ void krikett_jatekos_hozzaadas(int set, int leg)
     uj->nyert_leg = 0;
     uj->stat.nyilak_db = 0;
     uj->stat.atlag = 0;
+    uj->stat.ossz_dobas = 0;
+    uj->stat.nyert_set = 0;
+    uj->stat.nyert_leg = 0;
     uj->elozo = NULL;
     uj->kov = NULL;
 
@@ -204,33 +209,38 @@ bool krikett_szamol_dobas(Krikett_jatekosok *j, const char *dobas, bool *kilep)
         szam = atoi(dobas);
     }
 
+    if (szam == 25 && szorzo == 3)
+    {
+        return false;
+    }
+
     switch (szam)
     {
         case -1: *kilep = true; break;
-        case 0: break;
-        case 1: break;
-        case 2: break;
-        case 3: break;
-        case 4: break;
-        case 5: break;
-        case 6: break;
-        case 7: break;
-        case 8: break;
-        case 9: break;
-        case 10: break;
-        case 11: break;
-        case 12: break;
-        case 13: break;
-        case 14: break;
-        case 15: j->db_15 += szorzo; break;
-        case 16: j->db_16 += szorzo; break;
-        case 17: j->db_17 += szorzo; break;
-        case 18: j->db_18 += szorzo; break;
-        case 19: j->db_19 += szorzo; break;
-        case 20: j->db_20 += szorzo; break;
-        case 25: j->db_25 += szorzo; break;
+        case 0: j->stat.nyilak_db++; break;
+        case 1: j->stat.nyilak_db++; break;
+        case 2: j->stat.nyilak_db++; break;
+        case 3: j->stat.nyilak_db++; break;
+        case 4: j->stat.nyilak_db++; break;
+        case 5: j->stat.nyilak_db++; break;
+        case 6: j->stat.nyilak_db++; break;
+        case 7: j->stat.nyilak_db++; break;
+        case 8: j->stat.nyilak_db++; break;
+        case 9: j->stat.nyilak_db++; break;
+        case 10: j->stat.nyilak_db++; break;
+        case 11: j->stat.nyilak_db++; break;
+        case 12: j->stat.nyilak_db++; break;
+        case 13: j->stat.nyilak_db++; break;
+        case 14: j->stat.nyilak_db++; break;
+        case 15: j->db_15 += szorzo; j->stat.nyilak_db++; break;
+        case 16: j->db_16 += szorzo; j->stat.nyilak_db++; break;
+        case 17: j->db_17 += szorzo; j->stat.nyilak_db++; break;
+        case 18: j->db_18 += szorzo; j->stat.nyilak_db++; break;
+        case 19: j->db_19 += szorzo; j->stat.nyilak_db++; break;
+        case 20: j->db_20 += szorzo; j->stat.nyilak_db++; break;
+        case 25: j->db_25 += szorzo; j->stat.nyilak_db++; break;
         default: 
-            printf("Hibás bemenet! ");
+            printf("\nHibás bemenet! ");
             return false;
     }
     return true;
@@ -238,6 +248,9 @@ bool krikett_szamol_dobas(Krikett_jatekosok *j, const char *dobas, bool *kilep)
 
 bool ellenoriz_dobasok(Krikett_jatekosok *j, const char *d1, const char *d2, const char *d3, bool *kilep)
 {
+    bool ok1 = true;
+    bool ok2 = true;
+    bool ok3 = true;
     int ment15 = j->db_15;
     int ment16 = j->db_16;
     int ment17 = j->db_17;
@@ -246,9 +259,14 @@ bool ellenoriz_dobasok(Krikett_jatekosok *j, const char *d1, const char *d2, con
     int ment20 = j->db_20;
     int ment25 = j->db_25;
 
-    bool ok1 = krikett_szamol_dobas(j, d1, kilep);
-    bool ok2 = krikett_szamol_dobas(j, d2, kilep);
-    bool ok3 = krikett_szamol_dobas(j, d3, kilep);
+    if (d1[0] != '\0')
+    ok1 = krikett_szamol_dobas(j, d1, kilep);
+
+    if (d2[0] != '\0')
+    ok2 = krikett_szamol_dobas(j, d2, kilep);
+
+    if (d3[0] != '\0')
+    ok3 = krikett_szamol_dobas(j, d3, kilep);
 
     if (ok1 && ok2 && ok3)
         return true;
@@ -277,6 +295,32 @@ void szamol_pont(Krikett_jatekosok *j)
     if (j->db_25 > 3) { szorzo = j->db_25 - 3; j->pontok += 25 * szorzo; }
 }
 
+void mentes(Krikett_jatekosok *j)
+{
+    time_t most = time(NULL);
+    struct tm *ido = localtime(&most);
+
+    char fajlnev[100];
+    sprintf(fajlnev, "data/krikett_%04d_%02d_%02d_%02d_%02d.txt",
+    ido->tm_year + 1900, ido->tm_mon + 1, ido->tm_mday,        
+    ido->tm_hour, ido->tm_min);
+
+    FILE *fajl = fopen(fajlnev, "w");
+    if (fajl == NULL)
+    {
+        printf("Nem sikerült létrehozni a fájlt!\n");
+        return;
+    }
+
+    for (j = Kr_eleje; j != NULL; j = j->kov)
+    {
+        fprintf(fajl, "%s;%.2f;%.f;%d;%d\n",j->nev, j->stat.atlag, 
+        j->stat.nyilak_db,j->stat.nyert_leg, j->stat.nyert_set);
+    }
+    fclose(fajl);
+    return;
+}
+
 void krikett_jatek()
 {
     Krikett_jatekosok *mozgo;
@@ -285,6 +329,7 @@ void krikett_jatek()
     Krikett_jatekosok *mozgo4;
     bool nyert = false;
     bool kilep = false;
+    bool hibatlan;
     char dobasok[16]; 
     int korszam = 1;
     char *temp;
@@ -303,57 +348,64 @@ void krikett_jatek()
         mozgo->db_20 = 0;
         mozgo->db_25 = 0;
         mozgo->pontok = 0;
+        mozgo->stat.atlag = 0;
+        mozgo->stat.nyilak_db = 0;
+        mozgo->stat.nyert_set = 0;
+        mozgo->stat.nyert_leg = 0;
     }
 
     while (!nyert)
     {
         printf("\n---%d. kör---\n", korszam);
-        bool hibatlan = true;
         bool ujrakezd = false;
         for (mozgo = Kr_eleje; mozgo != NULL; mozgo = mozgo->kov)
         {
-            mozgo->dobas_1[0] = '\0';
-            mozgo->dobas_2[0] = '\0';
-            mozgo->dobas_3[0] = '\0';
-
-            printf("\n%s\n15: %d\n16: %d\n17: %d\n18: %d\n19: %d\n20: %d\n25: %d\nPotnok: %d",
-            mozgo->nev, mozgo->db_15, mozgo->db_16, mozgo->db_17, mozgo->db_18,
-            mozgo->db_19, mozgo->db_20, mozgo->db_25, mozgo->pontok);
-            printf("\nNyert leg: %d\nNyert set: %d\n", mozgo->nyert_leg, mozgo->nyert_set);
-            printf("\nDobások: ");
-            
-            if (fgets(dobasok, sizeof(dobasok), stdin) == NULL)
+            hibatlan = false;
+            while (!hibatlan)
             {
-                printf("Hiba beolvasáskor!\n");
-                hibatlan = false;
-                break;
-            }
+                mozgo->dobas_1[0] = '\0';
+                mozgo->dobas_2[0] = '\0';
+                mozgo->dobas_3[0] = '\0';
 
-            dobasok[strcspn(dobasok, "\n")] = '\0';
+                printf("\n%s\n15: %d\n16: %d\n17: %d\n18: %d\n19: %d\n20: %d\n25: %d\nPotnok: %d",
+                mozgo->nev, mozgo->db_15, mozgo->db_16, mozgo->db_17, mozgo->db_18,
+                mozgo->db_19, mozgo->db_20, mozgo->db_25, mozgo->pontok);
+                printf("\nNyert leg: %d\nNyert set: %d\n", mozgo->nyert_leg, mozgo->nyert_set);
+                printf("\nDobások: ");
+                
+                if (fgets(dobasok, sizeof(dobasok), stdin) == NULL)
+                {
+                    printf("\nHiba beolvasáskor!\n");
+                    continue;
+                }
 
-            temp = strtok(dobasok, ", ");
-            if (temp) {
-                while (*temp == ' ') temp++;  
-                strcpy(mozgo->dobas_1, temp);
-            }
+                dobasok[strcspn(dobasok, "\n")] = '\0';
 
-            temp = strtok(NULL, ", ");
-            if (temp) {
-                while (*temp == ' ') temp++;
-                strcpy(mozgo->dobas_2, temp);
-            }
+                temp = strtok(dobasok, ", ");
+                if (temp) {
+                    while (*temp == ' ') temp++;  
+                    strcpy(mozgo->dobas_1, temp);
+                }
 
-            temp = strtok(NULL, ", ");
-            if (temp) {
-                while (*temp == ' ') temp++;
-                strcpy(mozgo->dobas_3, temp);
-            }
+                temp = strtok(NULL, ", ");
+                if (temp) {
+                    while (*temp == ' ') temp++;
+                    strcpy(mozgo->dobas_2, temp);
+                }
 
-            if (!ellenoriz_dobasok(mozgo, mozgo->dobas_1, mozgo->dobas_2, mozgo->dobas_3, &kilep))
-            {
-                printf("\nHibás dobás! Dobj újra!");
-                hibatlan = false;
-                break;
+                temp = strtok(NULL, ", ");
+                if (temp) {
+                    while (*temp == ' ') temp++;
+                    strcpy(mozgo->dobas_3, temp);
+                }
+
+                if (!ellenoriz_dobasok(mozgo, mozgo->dobas_1, mozgo->dobas_2, mozgo->dobas_3, &kilep))
+                {
+                    printf("\nHibás dobás! Dobj újra!\n");
+                    continue;
+                }
+
+                hibatlan = true;
             }
                 
             if (kilep)
@@ -363,8 +415,12 @@ void krikett_jatek()
                 break;
             }
             
-
             szamol_pont(mozgo);
+            
+            mozgo->stat.atlag = (mozgo->stat.ossz_dobas + mozgo->db_15 * 15 + mozgo->db_16 * 16 +
+                     mozgo->db_17 * 17 + mozgo->db_18 * 18 +
+                     mozgo->db_19 * 19 + mozgo->db_20 * 20 +
+                     mozgo->db_25 * 25) / mozgo->stat.nyilak_db;
 
             if (mozgo->db_15 > 2 && mozgo->db_16 > 2 && mozgo->db_17 > 2 && mozgo->db_18 > 2 && 
                 mozgo->db_19 > 2 && mozgo->db_20 > 2 && mozgo->db_25 > 2)
@@ -376,7 +432,12 @@ void krikett_jatek()
                         if (mozgo->pontok >= mozgo2->pontok)
                         {
                             printf("\n%s játékos nyert egy kört!\n", mozgo->nev);
+                            mozgo->stat.ossz_dobas += (mozgo->db_15 * 15 +
+                            mozgo->db_16 * 16 + mozgo->db_17 * 17 +
+                            mozgo->db_18 * 18 + mozgo->db_19 * 19 +
+                            mozgo->db_20 * 20 + mozgo->db_25 * 25);
                             mozgo->nyert_leg++;
+                            mozgo->stat.nyert_leg++;
                             for (mozgo3 = Kr_eleje; mozgo3 != NULL; mozgo3 = mozgo3->kov)
                             {
                                 mozgo3->db_15 = 0;
@@ -395,6 +456,7 @@ void krikett_jatek()
                                     mozgo4->nyert_leg = 0;
                                 }
                                 mozgo->nyert_set++;
+                                mozgo->stat.nyert_set++;
                             }
                             if (mozgo->nyert_set == mozgo->set)
                             {
@@ -410,18 +472,49 @@ void krikett_jatek()
                     break;
             }
         }
-
         if (hibatlan)
         {
             korszam++;
         }
-        
+
         if (ujrakezd)
         {
             korszam = 1;
             continue;
         }
     }
+    if (!kilep)
+    {
+        for (mozgo = Kr_eleje; mozgo != NULL; mozgo = mozgo->kov)
+        {
+            printf("%s: átlag: %.1f, nyilak száma: %.f, összesen nyert leg és set: %d,%d\n",mozgo->nev,
+            mozgo->stat.atlag, mozgo->stat.nyilak_db,mozgo->stat.nyert_leg, mozgo->stat.nyert_set);
+        }
+
+            char betu;
+        do
+        {
+            printf("\nSzeretnéd menteni a játékot (I/N): ");
+            scanf(" %c", &betu);
+
+        } while ('i' != tolower(betu) && 'n' != tolower(betu));
+        
+        if (betu == 'i')
+        {
+            mentes(Kr_eleje);
+            printf("Játék mentve!\n");
+        }
+    }
+}
+
+void krikett_felszabadit() {
+    Krikett_jatekosok *mozgo = Kr_eleje;
+    while (mozgo) {
+        Krikett_jatekosok *kov = mozgo->kov;
+        free(mozgo);
+        mozgo = kov;
+    }
+    Kr_eleje = NULL;
 }
 
 void krikett_menu()
@@ -483,6 +576,11 @@ void krikett_menu()
             }
             else
             {
+                for (mozgo = Kr_eleje; mozgo != NULL; mozgo = mozgo->kov)
+                {
+                    mozgo->set = set;
+                    mozgo->leg = leg;
+                }
                 printf("\nKezdődjön a játék!\n");
                 krikett_jatek();
             }
