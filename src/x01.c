@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <debugmalloc.h>
 #include "../include/x01.h"
 #include "../include/lista.h"
 
@@ -441,6 +442,16 @@ void x01_jatek(int x01, int set, int leg)
             continue;
         }
     }
+}
+
+void x01_felszabadit() {
+    X01_jatekosok *mozgo = X01_eleje;
+    while (mozgo != NULL) {
+        X01_jatekosok *kov = mozgo->kov;
+        free(mozgo);
+        mozgo = kov;
+    }
+    X01_eleje = NULL;
 }
 
 void x01_menu()
