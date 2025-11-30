@@ -260,13 +260,13 @@ bool ellenoriz_dobasok(Krikett_jatekosok *j, const char *d1, const char *d2, con
     int ment25 = j->db_25;
 
     if (d1[0] != '\0')
-    ok1 = krikett_szamol_dobas(j, d1, kilep);
+        ok1 = krikett_szamol_dobas(j, d1, kilep);
 
     if (d2[0] != '\0')
-    ok2 = krikett_szamol_dobas(j, d2, kilep);
+        ok2 = krikett_szamol_dobas(j, d2, kilep);
 
     if (d3[0] != '\0')
-    ok3 = krikett_szamol_dobas(j, d3, kilep);
+        ok3 = krikett_szamol_dobas(j, d3, kilep);
 
     if (ok1 && ok2 && ok3)
         return true;
@@ -295,8 +295,9 @@ void szamol_pont(Krikett_jatekosok *j)
     if (j->db_25 > 3) { szorzo = j->db_25 - 3; j->pontok += 25 * szorzo; }
 }
 
-void mentes(Krikett_jatekosok *j)
+void krikett_mentes()
 {
+    Krikett_jatekosok *mozgo;
     time_t most = time(NULL);
     struct tm *ido = localtime(&most);
 
@@ -312,10 +313,10 @@ void mentes(Krikett_jatekosok *j)
         return;
     }
 
-    for (j = Kr_eleje; j != NULL; j = j->kov)
+    for (mozgo = Kr_eleje; mozgo != NULL; mozgo = mozgo->kov)
     {
-        fprintf(fajl, "%s;%.2f;%.f;%d;%d\n",j->nev, j->stat.atlag, 
-        j->stat.nyilak_db,j->stat.nyert_leg, j->stat.nyert_set);
+        fprintf(fajl, "%s;%.2f;%.f;%d;%d\n",mozgo->nev, mozgo->stat.atlag, 
+        mozgo->stat.nyilak_db, mozgo->stat.nyert_leg, mozgo->stat.nyert_set);
     }
     fclose(fajl);
     return;
@@ -487,7 +488,7 @@ void krikett_jatek()
     {
         for (mozgo = Kr_eleje; mozgo != NULL; mozgo = mozgo->kov)
         {
-            printf("%s: átlag: %.1f, nyilak száma: %.f, összesen nyert leg és set: %d,%d\n",mozgo->nev,
+            printf("%s: átlag: %.2f, nyilak száma: %.f, összesen nyert leg és set: %d, %d\n",mozgo->nev,
             mozgo->stat.atlag, mozgo->stat.nyilak_db,mozgo->stat.nyert_leg, mozgo->stat.nyert_set);
         }
 
@@ -501,7 +502,7 @@ void krikett_jatek()
         
         if (betu == 'i')
         {
-            mentes(Kr_eleje);
+            krikett_mentes();
             printf("Játék mentve!\n");
         }
     }
