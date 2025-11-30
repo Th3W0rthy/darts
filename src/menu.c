@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <debugmalloc.h>
 #include "../include/menu.h"
 #include "../include/x01.h"
 #include "../include/krikett.h"
@@ -63,6 +64,8 @@ void menu()
             printf("Mentett játékok\n");
             break;
         case '4':
+            x01_felszabadit();
+            krikett_felszabadit();
             printf("Kilépés\n");
             exit(0);
         default:
