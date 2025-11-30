@@ -4,6 +4,7 @@
 #include "../include/menu.h"
 #include "../include/x01.h"
 #include "../include/krikett.h"
+#include "../include/mentett.h"
 
 void jatekok_menu()
 {
@@ -61,7 +62,7 @@ void menu()
             utmutato_menu();
             break;
         case '3':
-            printf("Mentett játékok\n");
+            fajl_beolvas();
             break;
         case '4':
             x01_felszabadit();
