@@ -14,8 +14,11 @@ typedef struct X01_stats
 
 typedef struct Krikett_stats
 {
-    int nyilak_db;
+    double nyilak_db;
     double atlag;
+    double ossz_dobas;
+    int nyert_set;
+    int nyert_leg;
 } Krikett_stats;
 
 typedef struct X01_jatekosok
