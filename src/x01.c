@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <time.h>
 #include <debugmalloc.h>
 #include "../include/x01.h"
 #include "../include/lista.h"
@@ -140,11 +141,13 @@ void x01_jatekos_hozzaadas(int x01, int set, int leg)
     uj->nyert_leg = 0;
     uj->stat.nyilak_db = 0;
     uj->stat.atlag = 0;
+    uj->stat.ossz_dobas = 0;
     uj->stat.max_dobas_db = 0;
     uj->stat.kiszallo_dobas_db = 0;
     uj->stat.jo_kiszallo = 0;
     uj->stat.max_kiszallo = 0;
-    uj->stat.gyozelmek = 0;
+    uj->stat.nyert_set = 0;
+    uj->stat.nyert_leg = 0;
     uj->elozo = NULL;
     uj->kov = NULL;
 
@@ -220,7 +223,7 @@ bool x01_szamol_dobas(X01_jatekosok *j, const char *dobas, bool *kilep, bool *so
 {
     int szorzo = 1;
     int szam;
-    char betu;
+    char betu = '\0';
     if (isalpha(dobas[0]))
     {
         betu = tolower(dobas[0]);
@@ -243,11 +246,11 @@ bool x01_szamol_dobas(X01_jatekosok *j, const char *dobas, bool *kilep, bool *so
 
     if ((szam >= 0 && szam <= 20) || szam == 25 )
     {
-        if (szam == 25 && betu == 't')
+        if (szam == 25 && szorzo == 3)
         {
             return false;
         }
-        
+    
         int temp = j->x01;
         temp -= szorzo * szam;
         if (temp < 0 || temp == 1)
@@ -255,6 +258,13 @@ bool x01_szamol_dobas(X01_jatekosok *j, const char *dobas, bool *kilep, bool *so
            *sok = true;
            return true;
         }
+
+        if (dobas[0] != '\0')
+        {
+            j->stat.nyilak_db++;
+            j->stat.ossz_dobas += szorzo * szam;
+        }
+        
         j->x01 = temp;
         return true;
     }
@@ -264,7 +274,7 @@ bool x01_szamol_dobas(X01_jatekosok *j, const char *dobas, bool *kilep, bool *so
     }
 }
 
-void kiir_kiszallo(const int x01)
+void kiir_kiszallo(const int x01, X01_jatekosok *j)
 {
     FILE *fajl = fopen("data/kiszallok.txt", "r");
     if (!fajl)
@@ -309,6 +319,37 @@ void kiir_kiszallo(const int x01)
     }
     
     fclose(fajl);
+
+    j->stat.kiszallo_dobas_db++;
+}
+
+void x01_mentes()
+{
+    X01_jatekosok *mozgo;
+    time_t most = time(NULL);
+    struct tm *ido = localtime(&most);
+
+    char fajlnev[200];
+    sprintf(fajlnev, "data/x01_%04d_%02d_%02d_%02d_%02d.txt",
+    ido->tm_year + 1900, ido->tm_mon + 1, ido->tm_mday,        
+    ido->tm_hour, ido->tm_min);
+
+    FILE *fajl = fopen(fajlnev, "w");
+    if (fajl == NULL)
+    {
+        printf("Nem sikerült létrehozni a fájlt!\n");
+        return;
+    }
+
+    for (mozgo = X01_eleje; mozgo != NULL; mozgo = mozgo->kov)
+    {
+        fprintf(fajl, "%s;%.2f;%.f;%d;%d;%d;%d;%d;%d\n",
+            mozgo->nev, mozgo->stat.atlag, mozgo->stat.nyilak_db, mozgo->stat.max_dobas_db,
+            mozgo->stat.kiszallo_dobas_db, mozgo->stat.jo_kiszallo,mozgo->stat.max_kiszallo,
+            mozgo->stat.nyert_leg, mozgo->stat.nyert_set);
+    }
+    fclose(fajl);
+    return;
 }
 
 void x01_jatek(int x01, int set, int leg)
@@ -318,6 +359,7 @@ void x01_jatek(int x01, int set, int leg)
     X01_jatekosok *mozgo3;
     bool nyert = false;
     bool kilep = false;
+    bool kiir_stat = false;
     char dobasok[16];
     int korszam = 1;
     char *temp;
@@ -331,6 +373,16 @@ void x01_jatek(int x01, int set, int leg)
         mozgo->x01 = x01;
         mozgo->set = set;
         mozgo->leg = leg;
+        mozgo->nyert_set = 0;
+        mozgo->nyert_leg = 0;
+        mozgo->stat.nyilak_db = 0;
+        mozgo->stat.atlag = 0;
+        mozgo->stat.max_dobas_db = 0;
+        mozgo->stat.kiszallo_dobas_db = 0;
+        mozgo->stat.jo_kiszallo = 0;
+        mozgo->stat.max_kiszallo = 0;
+        mozgo->stat.nyert_set = 0;
+        mozgo->stat.nyert_leg = 0;
     }
 
     while (!nyert)
@@ -347,9 +399,10 @@ void x01_jatek(int x01, int set, int leg)
             
             printf("\n%s\nPontszám: %d\nNyert leg: %d\nNyert set: %d\n",
             mozgo->nev, mozgo->x01, mozgo->nyert_leg, mozgo->nyert_set);
+
             if (mozgo->x01 <= 170)
             {
-                kiir_kiszallo(mozgo->x01);
+                kiir_kiszallo(mozgo->x01, mozgo);
             }
             printf("\nDobások: ");
 
@@ -382,6 +435,7 @@ void x01_jatek(int x01, int set, int leg)
 
             int temp_x01 = mozgo->x01;
 
+
             if (!x01_szamol_dobas(mozgo, mozgo->dobas_1, &kilep, &sok) || 
             !x01_szamol_dobas(mozgo, mozgo->dobas_2, & kilep, &sok) || 
             !x01_szamol_dobas(mozgo, mozgo->dobas_3, &kilep, &sok))
@@ -406,10 +460,26 @@ void x01_jatek(int x01, int set, int leg)
                 continue;
             }
 
+            if ((strcmp(mozgo->dobas_1, "t20") == 0 || strcmp(mozgo->dobas_1, "T20") == 0) 
+            && (strcmp(mozgo->dobas_2, "t20") == 0 || strcmp(mozgo->dobas_2, "T20") == 0)
+            && (strcmp(mozgo->dobas_3, "t20") == 0 || strcmp(mozgo->dobas_3, "T20") == 0))
+            {
+                mozgo->stat.max_dobas_db++;
+            }
+            
+            mozgo->stat.atlag = mozgo->stat.ossz_dobas / mozgo->stat.nyilak_db;
+
             if (mozgo->x01 == 0)
             {
                 printf("\n%s játékos nyert egy kört!\n", mozgo->nev);
                 mozgo->nyert_leg++;
+                mozgo->stat.nyert_leg++;
+                mozgo->stat.jo_kiszallo++;
+                if (temp_x01 > mozgo->stat.max_kiszallo)
+                {
+                    mozgo->stat.max_kiszallo = temp_x01;
+                }
+                
                 for (mozgo3 = X01_eleje; mozgo3 != NULL; mozgo3 = mozgo3->kov)
                 {
                     mozgo3->x01 = x01;
@@ -421,9 +491,11 @@ void x01_jatek(int x01, int set, int leg)
                         mozgo2->nyert_leg = 0;
                     }
                     mozgo->nyert_set++;
+                    mozgo->stat.nyert_set++;
                     if (mozgo->nyert_set == mozgo->set)
                     {
                         nyert = true;
+                        kiir_stat = true;
                         printf("\n%s játékos győzött!\n", mozgo->nev);
                     }
                 }
@@ -440,6 +512,32 @@ void x01_jatek(int x01, int set, int leg)
         {
             korszam = 1;
             continue;
+        }
+    }
+
+    if (kiir_stat)
+    {
+        for (mozgo = X01_eleje; mozgo != NULL; mozgo = mozgo->kov)
+        {
+            printf("\n%s: átlag: %.2f, nyilak száma: %.f, 180 db: %d, kiszálló dobás: %d, "
+            "jó kiszálló: %d, max kiszálló: %d, összesen nyert leg és set: %d, %d\n",
+            mozgo->nev, mozgo->stat.atlag, mozgo->stat.nyilak_db, mozgo->stat.max_dobas_db,
+            mozgo->stat.kiszallo_dobas_db, mozgo->stat.jo_kiszallo,mozgo->stat.max_kiszallo,
+            mozgo->stat.nyert_leg, mozgo->stat.nyert_set);
+        }
+
+        char betu;
+        do
+        {
+            printf("\nSzeretnéd menteni a játékot (I/N): ");
+            scanf(" %c", &betu);
+
+        } while ('i' != tolower(betu) && 'n' != tolower(betu));
+        
+        if (betu == 'i')
+        {
+            x01_mentes();
+            printf("Játék mentve!\n");
         }
     }
 }
