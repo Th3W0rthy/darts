@@ -8,9 +8,7 @@
 #include "../include/krikett.h"
 #include "../include/lista.h"
 
-Krikett_jatekosok *Kr_eleje = NULL;
-
-void krikett_set_beallitas(int *set)
+void krikett_set_beallitas(Krikett_jatekosok *Kr_eleje, int *set)
 {
     char menupont;
     do
@@ -44,7 +42,7 @@ void krikett_set_beallitas(int *set)
     } while (menupont != 8);
 }
 
-void krikett_leg_beallitas(int *leg)
+void krikett_leg_beallitas(Krikett_jatekosok *Kr_eleje, int *leg)
 {
     char menupont;
     do
@@ -73,13 +71,13 @@ void krikett_leg_beallitas(int *leg)
     } while (menupont != 4);
 }
 
-void krikett_jatekos_hozzaadas(int set, int leg)
+void krikett_jatekos_hozzaadas(Krikett_jatekosok **Kr_eleje, int set, int leg)
 {
     char nev[31];
     printf("Játékos neve: ");
     scanf("%30s", nev);
 
-    Krikett_jatekosok *mozgo = Kr_eleje;
+    Krikett_jatekosok *mozgo = *Kr_eleje;
     while (mozgo != NULL)
     {
         if (strcmp(mozgo->nev, nev) == 0)
@@ -121,17 +119,17 @@ void krikett_jatekos_hozzaadas(int set, int leg)
     uj->elozo = NULL;
     uj->kov = NULL;
 
-    if (Kr_eleje == NULL)
+    if (*Kr_eleje == NULL)
     {
-        Kr_eleje = uj;
+        *Kr_eleje = uj;
     }
     else
     {
-        Krikett_jatekosok *mozgo = Kr_eleje;
+        Krikett_jatekosok *mozgo = *Kr_eleje;
         while (mozgo->kov != NULL)
-            {
-                mozgo = mozgo->kov;
-            }
+        {
+            mozgo = mozgo->kov;
+        }
         mozgo->kov = uj;
         uj->elozo = mozgo;
     }
@@ -139,9 +137,9 @@ void krikett_jatekos_hozzaadas(int set, int leg)
     printf("Játékos hozzáadva.\n");
 }
 
-void krikett_jatekos_torles()
+void krikett_jatekos_torles(Krikett_jatekosok **Kr_eleje)
 {
-    if (Kr_eleje == NULL)
+    if (*Kr_eleje == NULL)
     {
         printf("Nincs törlendő játékos!\n");
         return;
@@ -152,7 +150,7 @@ void krikett_jatekos_torles()
     scanf("%d", &sorszam);
 
     Krikett_jatekosok *lemarado = NULL;
-    Krikett_jatekosok *mozgo = Kr_eleje;
+    Krikett_jatekosok *mozgo = *Kr_eleje;
 
     int i = 1;
     while (mozgo != NULL && i < sorszam)
@@ -170,10 +168,10 @@ void krikett_jatekos_torles()
 
     if (lemarado == NULL)
     {
-        Kr_eleje = mozgo->kov;
-        if (Kr_eleje)
+        *Kr_eleje = mozgo->kov;
+        if (*Kr_eleje)
         {
-            Kr_eleje->elozo = NULL;
+            (*Kr_eleje)->elozo = NULL;
         }
     } 
     else
@@ -295,7 +293,7 @@ void szamol_pont(Krikett_jatekosok *j)
     if (j->db_25 > 3) { szorzo = j->db_25 - 3; j->pontok += 25 * szorzo; }
 }
 
-void krikett_mentes()
+void krikett_mentes(Krikett_jatekosok *Kr_eleje)
 {
     Krikett_jatekosok *mozgo;
     time_t most = time(NULL);
@@ -322,7 +320,7 @@ void krikett_mentes()
     return;
 }
 
-void krikett_jatek()
+void krikett_jatek(Krikett_jatekosok *Kr_eleje)
 {
     Krikett_jatekosok *mozgo;
     Krikett_jatekosok *mozgo2;
@@ -492,7 +490,7 @@ void krikett_jatek()
             mozgo->stat.atlag, mozgo->stat.nyilak_db,mozgo->stat.nyert_leg, mozgo->stat.nyert_set);
         }
 
-            char betu;
+        char betu;
         do
         {
             printf("\nSzeretnéd menteni a játékot (I/N): ");
@@ -502,20 +500,20 @@ void krikett_jatek()
         
         if (betu == 'i')
         {
-            krikett_mentes();
+            krikett_mentes(Kr_eleje);
             printf("Játék mentve!\n");
         }
     }
 }
 
-void krikett_felszabadit() {
-    Krikett_jatekosok *mozgo = Kr_eleje;
+void krikett_felszabadit(Krikett_jatekosok **Kr_eleje) {
+    Krikett_jatekosok *mozgo = *Kr_eleje;
     while (mozgo) {
         Krikett_jatekosok *kov = mozgo->kov;
         free(mozgo);
         mozgo = kov;
     }
-    Kr_eleje = NULL;
+    *Kr_eleje = NULL;
 }
 
 void krikett_menu()
@@ -523,6 +521,7 @@ void krikett_menu()
     char menupont;
     int set = 1;
     int leg = 1;
+    Krikett_jatekosok *Kr_eleje = NULL;
 
     do
     {
@@ -555,16 +554,16 @@ void krikett_menu()
         switch (menupont)
         {
         case '1':
-            krikett_set_beallitas(&set);
+            krikett_set_beallitas(Kr_eleje, &set);
             break;
         case '2':
-            krikett_leg_beallitas(&leg);
+            krikett_leg_beallitas(Kr_eleje, &leg);
             break;
         case '3':
-            krikett_jatekos_hozzaadas(set, leg);
+            krikett_jatekos_hozzaadas(&Kr_eleje, set, leg);
             break;
         case '4':
-            krikett_jatekos_torles();
+            krikett_jatekos_torles(&Kr_eleje);
             break;
         case '5':
             if (!Kr_eleje)
@@ -583,11 +582,12 @@ void krikett_menu()
                     mozgo->leg = leg;
                 }
                 printf("\nKezdődjön a játék!\n");
-                krikett_jatek();
+                krikett_jatek(Kr_eleje);
             }
             break;
         case '6':
             printf("\nVisszalépés a játékok menübe!\n");
+            krikett_felszabadit(&Kr_eleje);
             return;
             break;
         default:
