@@ -65,8 +65,6 @@ void menu()
             fajl_beolvas();
             break;
         case '4':
-            x01_felszabadit();
-            krikett_felszabadit();
             printf("Kilépés\n");
             exit(0);
         default:
