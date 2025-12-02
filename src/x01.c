@@ -8,9 +8,7 @@
 #include "../include/x01.h"
 #include "../include/lista.h"
 
-X01_jatekosok *X01_eleje = NULL;
-
-void x01_set_beallitas(int *set)
+void x01_set_beallitas(X01_jatekosok *X01_eleje, int *set)
 {
     char menupont;
     do
@@ -44,7 +42,7 @@ void x01_set_beallitas(int *set)
     } while (menupont != 8);
 }
 
-void x01_leg_beallitas(int *leg)
+void x01_leg_beallitas(X01_jatekosok *X01_eleje, int *leg)
 {
     char menupont;
     do
@@ -73,7 +71,7 @@ void x01_leg_beallitas(int *leg)
     } while (menupont != 4);
 }
 
-void x01_beallitas(int *x01)
+void x01_beallitas(X01_jatekosok *X01_eleje, int *x01)
 {
     char menupont;
     do
@@ -106,13 +104,13 @@ void x01_beallitas(int *x01)
     } while (menupont != '7');
 }
 
-void x01_jatekos_hozzaadas(int x01, int set, int leg)
+void x01_jatekos_hozzaadas(X01_jatekosok **X01_eleje, int x01, int set, int leg)
 {
     char nev[31];
     printf("Játékos neve: ");
     scanf("%30s", nev);
 
-    X01_jatekosok *mozgo = X01_eleje;
+    X01_jatekosok *mozgo = *X01_eleje;
     while (mozgo != NULL)
     {
         if (strcmp(mozgo->nev, nev) == 0)
@@ -151,17 +149,17 @@ void x01_jatekos_hozzaadas(int x01, int set, int leg)
     uj->elozo = NULL;
     uj->kov = NULL;
 
-    if (X01_eleje == NULL)
+    if (*X01_eleje == NULL)
     {
-        X01_eleje = uj;
+        *X01_eleje = uj;
     }
     else
     {
-        X01_jatekosok *mozgo = X01_eleje;
+        X01_jatekosok *mozgo = *X01_eleje;
         while (mozgo->kov != NULL)
-            {
-                mozgo = mozgo->kov;
-            }
+        {
+            mozgo = mozgo->kov;
+        }
         mozgo->kov = uj;
         uj->elozo = mozgo;
     }
@@ -169,9 +167,9 @@ void x01_jatekos_hozzaadas(int x01, int set, int leg)
     printf("Játékos hozzáadva.\n");
 }
 
-void x01_jatekos_torlese()
+void x01_jatekos_torlese(X01_jatekosok **X01_eleje)
 {
-    if (X01_eleje == NULL)
+    if (*X01_eleje == NULL)
     {
         printf("Nincs törlendő játékos!\n");
         return;
@@ -182,7 +180,7 @@ void x01_jatekos_torlese()
     scanf("%d", &sorszam);
 
     X01_jatekosok *lemarado = NULL;
-    X01_jatekosok *mozgo = X01_eleje;
+    X01_jatekosok *mozgo = *X01_eleje;
 
     int i = 1;
     while (mozgo != NULL && i < sorszam)
@@ -200,10 +198,10 @@ void x01_jatekos_torlese()
 
     if (lemarado == NULL)
     {
-        X01_eleje = mozgo->kov;
-        if (X01_eleje)
+        *X01_eleje = mozgo->kov;
+        if (*X01_eleje)
         {
-            X01_eleje->elozo = NULL;
+            (*X01_eleje)->elozo = NULL;
         }
     } 
     else
@@ -274,7 +272,7 @@ bool x01_szamol_dobas(X01_jatekosok *j, const char *dobas, bool *kilep, bool *so
     }
 }
 
-void kiir_kiszallo(const int x01, X01_jatekosok *j)
+void kiir_kiszallo(const int x01)
 {
     FILE *fajl = fopen("data/kiszallok.txt", "r");
     if (!fajl)
@@ -319,11 +317,9 @@ void kiir_kiszallo(const int x01, X01_jatekosok *j)
     }
     
     fclose(fajl);
-
-    j->stat.kiszallo_dobas_db++;
 }
 
-void x01_mentes()
+void x01_mentes(X01_jatekosok *X01_eleje)
 {
     X01_jatekosok *mozgo;
     time_t most = time(NULL);
@@ -352,7 +348,7 @@ void x01_mentes()
     return;
 }
 
-void x01_jatek(int x01, int set, int leg)
+void x01_jatek(X01_jatekosok *X01_eleje, int x01, int set, int leg)
 {
     X01_jatekosok *mozgo;
     X01_jatekosok *mozgo2;
@@ -402,7 +398,8 @@ void x01_jatek(int x01, int set, int leg)
 
             if (mozgo->x01 <= 170)
             {
-                kiir_kiszallo(mozgo->x01, mozgo);
+                kiir_kiszallo(mozgo->x01);
+                mozgo->stat.kiszallo_dobas_db++;
             }
             printf("\nDobások: ");
 
@@ -536,24 +533,25 @@ void x01_jatek(int x01, int set, int leg)
         
         if (betu == 'i')
         {
-            x01_mentes();
+            x01_mentes(X01_eleje);
             printf("Játék mentve!\n");
         }
     }
 }
 
-void x01_felszabadit() {
-    X01_jatekosok *mozgo = X01_eleje;
+void x01_felszabadit(X01_jatekosok **X01_eleje) {
+    X01_jatekosok *mozgo = *X01_eleje;
     while (mozgo != NULL) {
         X01_jatekosok *kov = mozgo->kov;
         free(mozgo);
         mozgo = kov;
     }
-    X01_eleje = NULL;
+    *X01_eleje = NULL;
 }
 
 void x01_menu()
 {
+    X01_jatekosok *X01_eleje = NULL;
     char menupont;
     int x01 = 501;
     int set = 1;
@@ -588,19 +586,19 @@ void x01_menu()
         switch (menupont)
         {
         case '1':
-            x01_beallitas(&x01);
+            x01_beallitas(X01_eleje, &x01);
             break;
         case '2':
-            x01_set_beallitas(&set);
+            x01_set_beallitas(X01_eleje, &set);
             break;
         case '3':
-            x01_leg_beallitas(&leg);
+            x01_leg_beallitas(X01_eleje, &leg);
             break;
         case '4':
-            x01_jatekos_hozzaadas(x01, set, leg);
+            x01_jatekos_hozzaadas(&X01_eleje,x01, set, leg);
             break;
         case '5':
-            x01_jatekos_torlese();
+            x01_jatekos_torlese(&X01_eleje);
             break;
         case '6':
             if (!X01_eleje)
@@ -609,11 +607,12 @@ void x01_menu()
             }
             else
             {
-                x01_jatek(x01, set, leg);
+                x01_jatek(X01_eleje, x01, set, leg);
             }
             break;
         case '7':
             printf("\nVisszalépés a játékok menübe!\n");
+            x01_felszabadit(&X01_eleje);
             return;
             break;
         default:
